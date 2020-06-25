@@ -8,22 +8,30 @@
                 <h1>Welcome</h1>
                 <div class="form_inputs">
                     <div class="input_container">
-                        <input type="text" required="" v-model="email"/>
+                        <input type="text" required="" v-model.trim="$v.email.$model"/>
                         <label>Email</label>
                         <svg>
-                            <use xlink:href="#user"></use>
+                            <use xlink:href="#email"></use>
                         </svg>
+                        <div  class="error" v-if="$v.email.$error">
+                            <template v-if="!$v.email.required">Field is required</template>
+                        </div>
                     </div>
+
                     <div class="input_container">
-                        <input type="password" required="" v-model="password"/>
+                        <input type="password" required="" autocomplete="on" v-model.trim="$v.password.$model"/>
                         <label>Password</label>
                         <svg>
                             <use xlink:href="#password"></use>
                         </svg>
+                        <div  class="error" v-if="$v.password.$error">
+                            <template v-if="!$v.password.required">Field is required</template>
+                            <template v-if="!$v.password.minLength">Field must have at least {{$v.password.$params.minLength.min}} symbols</template>
+                        </div>
                     </div>
                 </div>
                 <div class="form_buttons">
-                    <button type="submit" @click="login">Log in</button>
+                    <button type="submit" @click="login" :disabled="$v.$invalid">Sign in</button>
                     <button type="submit" @click="signup">Sign up</button>
                 </div>
             </form>
@@ -32,50 +40,49 @@
 </template>
 
 <script>
-    import {mapGetters} from 'vuex';
+    import { required, minLength } from 'vuelidate/lib/validators';
     export default {
-        name: "Login",
-        // mounted() {
-        //     if (localStorage.accessToken) {
-        //         this.$store.commit('setAccessToken', localStorage.accessToken);
-        //     }
-        // },
-        computed: {
-            ...mapGetters([
-                'getAccessToken',
-                'getRefreshToken'
-            ]),
+        data() {
+            return {
+                email: '',
+                password: ''
+            }
+        },
+        validations: {
             email: {
-                get() {
-                    return this.$store.getters.getEmail;
-                },
-                set(value) {
-                    this.$store.commit('setEmail', value);
-                }
+                required,
             },
-            password: {
-                get() {
-                    return this.$store.getters.getPassword;
-                },
-                set(value) {
-                    this.$store.commit('setPassword', value);
-                }
+            password:{
+                required,
+                minLength: minLength(6)
             }
         },
         methods: {
             login() {
                 const {email, password} = this;
-                this.$store.dispatch('login', {email, password});
+                this.$store.dispatch('login', {email, password})
+                    .then(()=>{
+                        this.$store.dispatch('getAuthUser', this.$store.state.login.id);
+                    })
+                    .then(() => {
+                        this.$router.push('/');
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
             },
-            signup(){
-                const {email, password} = this;
-                this.$store.dispatch('signup', {email, password});
+            signup() {
+                this.$router.push('/sign-up');
             }
         }
     }
 </script>
 
 <style scoped lang="scss">
+    .error{
+        color: orangered;
+        font-size: 15px;
+    }
     .login_container {
         width: 80%;
         height: 90%;
@@ -184,6 +191,7 @@
         background-color: #c4c1c6;
         padding: 10px 30px;
         border: none;
+        cursor: pointer;
     }
 
     .form_buttons button:hover {

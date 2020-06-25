@@ -1,19 +1,22 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-
+import Main from "./components/Main";
+import SignUp from "./components/SignUp";
+import SignIn from "./components/SignIn";
 
 Vue.use(VueRouter);
 
-import Login from "./components/Login";
-import Main from "./components/Main";
-
 const routes = [
     {
-        path: '',
-        component: Login
+        path: '/sign-up',
+        component: SignUp
     },
     {
-        path: '/main',
+        path: '/sign-in',
+        component: SignIn
+    },
+    {
+        path: '/',
         component: Main
     }
 ];

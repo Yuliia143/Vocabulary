@@ -1,43 +1,30 @@
 import Vue from 'vue';
 import Vuex from "vuex";
 import axios from "axios";
+import * as jwt_decode from 'jwt-decode';
 
 Vue.use(Vuex, axios);
 
 const state = {
-    email: '',
-    password: '',
-    accessToken: localStorage.getItem('accessToken') || '',
-    refreshToken: localStorage.getItem('refreshToken') || ''
+    tokens: JSON.parse(localStorage.getItem('tokens')) || '',
+    id: ''
 };
 
 const getters = {
-    getEmail: state => {
-        return state.email;
+    getTokens: state => {
+        return state.tokens;
     },
-    getPassword: state => {
-        return state.password;
-    },
-    getAccessToken: state => {
-        return state.accessToken;
-    },
-    getRefreshToken: state => {
-        return state.refreshToken;
+    getId: state => {
+        return state.id;
     }
 };
 
 const mutations = {
-    setEmail(state, payload) {
-        state.email = payload;
+    setTokens(state, tokens){
+        state.tokens = tokens;
     },
-    setPassword(state, payload) {
-        state.password = payload;
-    },
-    setAccessToken(state, payload){
-        state.accessToken = payload;
-    },
-    setRefreshToken(state, payload){
-        state.refreshToken = payload;
+    setId(state, id){
+        state.id = id;
     }
 };
 
@@ -48,32 +35,47 @@ const actions = {
             password
         })
             .then(data => {
-                console.log(data);
-                const accessToken = data.data.tokens.accessToken;
-                const refreshToken = data.data.tokens.refreshToken;
-                commit('setAccessToken', accessToken);
-                commit('setRefreshToken', refreshToken);
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
+                const tokens = data.data.tokens;
+                commit('setTokens', tokens);
+                localStorage.setItem('tokens', JSON.stringify(tokens));
+                let decode = jwt_decode(tokens.accessToken);
+                commit('setId', decode.userId);
+                return data;
             })
             .catch(error => {
-                console.log(error);
+                throw new Error(error);
             });
     },
-    signup({commit}, {email, password}) {
+    signup({commit}, {name, email, password}) {
         return axios.post('http://localhost:8080/api/auth/sign-up', {
+            name,
             email,
             password
         })
             .then(data => {
-                console.log(data);
-                const accessToken = data.data.tokens.accessToken;
-                const refreshToken = data.data.tokens.refreshToken;
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
+                const tokens = data.data.tokens;
+                commit('setTokens', tokens);
+                localStorage.setItem('tokens', JSON.stringify(tokens));
+                let decode = jwt_decode(tokens.accessToken);
+                commit('setId', decode.userId);
+                return data;
             })
             .catch(error => {
-                console.log(error);
+                throw new Error(error);
+            });
+    },
+    getAuthUser({commit, getters}, id){
+        return axios.get(`http://localhost:8080/api/users/${id}` , {
+            headers: {
+                'Authorization': getters.getTokens.accessToken
+            }
+        })
+            .then(data=>{
+                console.log(data);
+                return data;
+            })
+            .catch(error => {
+                throw new Error(error);
             });
     }
 };
