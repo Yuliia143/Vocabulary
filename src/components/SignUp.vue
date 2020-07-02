@@ -4,47 +4,56 @@
             <!--<img src="../../public/images/main-image.jpg" alt="Picture">-->
         </div>
         <div class="right_content">
-            <form class="login_form" @submit.prevent="login">
+            <form class="login_form" @submit.prevent="submit">
                 <h1>Welcome</h1>
                 <div class="form_inputs">
                     <div class="input_container">
-                        <input type="text" required="" v-model.trim="$v.name.$model"/>
+                        <input type="text" required="" v-model.trim="$v.form.name.$model"/>
                         <label>Name</label>
                         <svg>
                             <use xlink:href="#user"></use>
                         </svg>
-                        <div  class="error" v-if="$v.name.$error">
-                            <template v-if="!$v.name.required">Field is required</template>
-                            <template v-if="!$v.name.minLength">Field must have at least {{$v.name.$params.minLength.min}} symbols</template>
+                        <div class="error" v-if="$v.form.name.$error">
+                            <template v-if="!$v.form.name.required">Field is required</template>
+                            <template v-if="!$v.form.name.minLength">Field must have at least
+                                {{$v.form.name.$params.minLength.min}} symbols
+                            </template>
                         </div>
                     </div>
 
                     <div class="input_container">
-                        <input type="text" required="" v-model.trim="$v.email.$model"/>
+                        <input type="email" required="" v-model.trim="$v.form.email.$model"
+                               @input="clearServerError($v.form.$model, 'email')"/>
                         <label>Email</label>
                         <svg>
                             <use xlink:href="#email"></use>
                         </svg>
-                        <div  class="error" v-if="$v.email.$error">
-                            <template v-if="!$v.email.required">Field is required</template>
+                        <div class="error" v-if="$v.form.email.$error">
+                            <template v-if="!$v.form.email.required">Field is required</template>
+                            <template v-if="!$v.form.email.email">This field needs to be a valid email</template>
+                            <template v-if="$v.form.email.serverError === false">
+                                {{form.serverErrors.email}}
+                            </template>
                         </div>
                     </div>
 
                     <div class="input_container">
-                        <input type="password" required="" autocomplete="on" v-model.trim="$v.password.$model"/>
+                        <input type="password" required="" autocomplete="on" v-model.trim="$v.form.password.$model"/>
                         <label>Password</label>
                         <svg>
                             <use xlink:href="#password"></use>
                         </svg>
-                        <div  class="error" v-if="$v.password.$error">
-                            <template v-if="!$v.password.required">Field is required</template>
-                            <template v-if="!$v.password.minLength">Field must have at least {{$v.password.$params.minLength.min}} symbols</template>
+                        <div class="error" v-if="$v.form.password.$error">
+                            <template v-if="!$v.form.password.required">Field is required</template>
+                            <template v-if="!$v.form.password.minLength">Field must have at least
+                                {{$v.form.password.$params.minLength.min}} symbols
+                            </template>
                         </div>
                     </div>
                 </div>
                 <div class="form_buttons">
                     <button type="submit" @click="login">Sign in</button>
-                    <button type="submit" @click="submit" :disabled="$v.$invalid">Submit</button>
+                    <button type="submit" :disabled="$v.$invalid">Submit</button>
                 </div>
             </form>
         </div>
@@ -52,51 +61,121 @@
 </template>
 
 <script>
-    import { required, minLength } from 'vuelidate/lib/validators';
+    import {required, minLength, email} from 'vuelidate/lib/validators';
+    import merge from 'lodash-es/merge'
+
+    const serverError = function (fieldName) {
+        return (value, vm) => {
+            return !(
+                vm.hasOwnProperty("serverErrors") &&
+                vm.serverErrors.hasOwnProperty(fieldName)
+            );
+        };
+    };
+
+    function removeProp(obj, propName) {
+        for (var p in obj) {
+            if (obj.hasOwnProperty(p)) {
+                if (p === propName) {
+                    delete obj[p];
+                } else if (typeof obj[p] === "object") {
+                    removeProp(obj[p], propName);
+                }
+            }
+        }
+        return obj;
+    }
+
     export default {
         data() {
             return {
-                name: '',
-                email: '',
-                password: ''
+                form: {
+                    name: '',
+                    email: '',
+                    password: '',
+                },
+                serverValidation: {},
+                clientValidation: {
+                    form: {
+                        name: {
+                            required,
+                            minLength: minLength(3)
+                        },
+                        email: {
+                            required,
+                            email,
+                        },
+                        password: {
+                            required,
+                            minLength: minLength(6)
+                        }
+                    }
+                },
             }
         },
-        validations: {
-            name: {
-                required,
-                minLength: minLength(3)
-            },
-            email: {
-                required,
-            },
-            password:{
-                required,
-                minLength: minLength(6)
+        computed: {
+            rules() {
+                return merge({}, this.serverValidation, this.clientValidation);
             }
+        },
+        validations() {
+            return this.rules;
         },
         methods: {
             login() {
                 this.$router.push('/sign-in');
             },
             submit() {
-                const {email, password} = this;
-                this.$store.dispatch('signup', {email, password})
-                    .then(() => {
-                        this.$router.push('/sign-in');
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
+                this.$v.$touch();
+                this.clearServerErrors();
+
+                if (this.$v.$invalid) {
+                    alert("Form is invalid");
+                } else {
+                    const {name, email, password} = this.form;
+                    this.$store.dispatch('signup', {name, email, password})
+                        .then(() => {
+                            this.$router.push('/');
+                        })
+                        .catch(error => {
+                            const serverMessages = {
+                                serverErrors: {
+                                    email: error.message
+                                }
+                            };
+                            merge(this.form, serverMessages);
+                            this.serverValidation = {
+                                form: {
+                                    email: {
+                                        serverError: serverError("email", false)
+                                    }
+                                }
+                            }
+                        });
+                }
+
+            },
+            clearServerErrors() {
+                this.serverValidation = {};
+                removeProp(this.form, "serverErrors");
+            },
+            clearServerError(model, fieldName) {
+                if (model.hasOwnProperty("serverErrors")) {
+                    if (model.serverErrors.hasOwnProperty(fieldName)) {
+                        delete model.serverErrors[fieldName];
+                    }
+                }
             }
         }
     }
 </script>
 
 <style scoped lang="scss">
-    .error{
+    .error {
         color: orangered;
         font-size: 15px;
     }
+
     .login_container {
         width: 80%;
         height: 90%;
@@ -213,6 +292,10 @@
         color: white;
     }
 
+    .form_buttons button:focus{
+        outline: none;
+    }
+
     @media (max-width: 767px) {
         .login_container {
             width: 100%;
@@ -230,7 +313,6 @@
         .right_content {
             width: 100%;
             padding: 0;
-            margin-top: -50px;
         }
         .login_form {
             margin-bottom: 20px;

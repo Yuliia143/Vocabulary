@@ -43,7 +43,7 @@ const actions = {
                 return data;
             })
             .catch(error => {
-                throw new Error(error);
+                throw new Error(error.response.data);
             });
     },
     signup({commit}, {name, email, password}) {
@@ -53,6 +53,7 @@ const actions = {
             password
         })
             .then(data => {
+                console.log(data);
                 const tokens = data.data.tokens;
                 commit('setTokens', tokens);
                 localStorage.setItem('tokens', JSON.stringify(tokens));
@@ -61,7 +62,7 @@ const actions = {
                 return data;
             })
             .catch(error => {
-                throw new Error(error);
+                throw new Error(error.response.data);
             });
     },
     getAuthUser({commit, getters}, id){
@@ -71,7 +72,6 @@ const actions = {
             }
         })
             .then(data=>{
-                console.log(data);
                 return data;
             })
             .catch(error => {

@@ -3,25 +3,49 @@ import VueRouter from 'vue-router';
 import Main from "./components/Main";
 import SignUp from "./components/SignUp";
 import SignIn from "./components/SignIn";
+import {store} from './store/store.js'
 
 Vue.use(VueRouter);
 
 const routes = [
     {
         path: '/sign-up',
-        component: SignUp
+        component: SignUp,
+        meta: { requiresAuth: false }
     },
     {
         path: '/sign-in',
-        component: SignIn
+        component: SignIn,
+        meta: { requiresAuth: false }
     },
     {
         path: '/',
-        component: Main
+        component: Main,
+        meta: { requiresAuth: true }
     }
 ];
 
-export const router = new VueRouter({
+const router = new VueRouter({
     routes,
     mode: 'history'
 });
+
+router.beforeEach((to, from, next) => {
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        // этот путь требует авторизации, проверяем залогинен ли
+        // пользователь, и если нет, перенаправляем на страницу логина
+        if (!store.getters.getId) {
+            next({
+                path: '/sign-in'
+            })
+        } else {
+            next()
+        }
+    } else {
+        next() // всегда так или иначе нужно вызвать next()!
+    }
+});
+
+export {
+    router
+};

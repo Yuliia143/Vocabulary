@@ -10,6 +10,7 @@
     "axios": "^0.19.2",
     "core-js": "^3.6.4",
     "jwt-decode": "^2.2.0",
+    "lodash-es": "^4.17.15",
     "node-sass": "^4.13.1",
     "normalize-scss": "^7.0.1",
     "vue": "^2.6.11",

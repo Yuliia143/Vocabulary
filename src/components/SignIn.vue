@@ -8,27 +8,32 @@
                 <h1>Welcome</h1>
                 <div class="form_inputs">
                     <div class="input_container">
-                        <input type="text" required="" v-model.trim="$v.email.$model"/>
+                        <input type="text" required="" v-model.trim="$v.form.email.$model" @input="handleInput"/>
                         <label>Email</label>
                         <svg>
                             <use xlink:href="#email"></use>
                         </svg>
-                        <div  class="error" v-if="$v.email.$error">
-                            <template v-if="!$v.email.required">Field is required</template>
+                        <div class="error" v-if="$v.form.email.$error">
+                            <template v-if="!$v.form.email.required">Field is required</template>
+                            <template v-if="!$v.form.email.email">This field needs to be a valid email</template>
                         </div>
                     </div>
 
                     <div class="input_container">
-                        <input type="password" required="" autocomplete="on" v-model.trim="$v.password.$model"/>
+                        <input type="password" required="" autocomplete="on" v-model.trim="$v.form.password.$model"
+                        @input="handleInput"/>
                         <label>Password</label>
                         <svg>
                             <use xlink:href="#password"></use>
                         </svg>
-                        <div  class="error" v-if="$v.password.$error">
-                            <template v-if="!$v.password.required">Field is required</template>
-                            <template v-if="!$v.password.minLength">Field must have at least {{$v.password.$params.minLength.min}} symbols</template>
+                        <div class="error" v-if="$v.form.password.$error">
+                            <template v-if="!$v.form.password.required">Field is required</template>
+                            <template v-if="!$v.form.password.minLength">Field must have at least
+                                {{$v.form.password.$params.minLength.min}} symbols
+                            </template>
                         </div>
                     </div>
+                    <p class="error" :style="{margin:'0', marginBottom:'10px'}" v-if="form.serverError">{{form.serverError}}</p>
                 </div>
                 <div class="form_buttons">
                     <button type="submit" @click="login" :disabled="$v.$invalid">Sign in</button>
@@ -40,35 +45,47 @@
 </template>
 
 <script>
-    import { required, minLength } from 'vuelidate/lib/validators';
+    import {required, minLength, email} from 'vuelidate/lib/validators';
+
     export default {
         data() {
             return {
-                email: '',
-                password: ''
+                form: {
+                    email: '',
+                    password: '',
+                    serverError: ''
+                }
             }
         },
         validations: {
-            email: {
-                required,
-            },
-            password:{
-                required,
-                minLength: minLength(6)
+            form: {
+                email: {
+                    required,
+                    email
+                },
+                password: {
+                    required,
+                    minLength: minLength(6)
+                }
             }
         },
         methods: {
+            handleInput(){
+                if(this.form.serverError){
+                    this.form.serverError = '';
+                }
+            },
             login() {
-                const {email, password} = this;
+                const {email, password} = this.form;
                 this.$store.dispatch('login', {email, password})
-                    .then(()=>{
+                    .then(() => {
                         this.$store.dispatch('getAuthUser', this.$store.state.login.id);
                     })
                     .then(() => {
                         this.$router.push('/');
                     })
                     .catch((error) => {
-                        console.log(error);
+                        this.form.serverError = error.message;
                     });
             },
             signup() {
@@ -79,10 +96,11 @@
 </script>
 
 <style scoped lang="scss">
-    .error{
+    .error {
         color: orangered;
         font-size: 15px;
     }
+
     .login_container {
         width: 80%;
         height: 90%;
@@ -193,6 +211,9 @@
         border: none;
         cursor: pointer;
     }
+    .form_buttons button:focus{
+        outline: none;
+    }
 
     .form_buttons button:hover {
         background-color: #98835f;
@@ -216,7 +237,7 @@
         .right_content {
             width: 100%;
             padding: 0;
-            margin-top: -50px;
+            margin-top: -40px;
         }
         .login_form {
             margin-bottom: 20px;
