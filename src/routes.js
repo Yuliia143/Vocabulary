@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Main from "./components/Main";
+import Vocabulary from "./components/Vocabulary";
+import Profile from "./components/Profile";
 import SignUp from "./components/SignUp";
 import SignIn from "./components/SignIn";
 import {store} from './store/store.js'
@@ -21,6 +23,16 @@ const routes = [
     {
         path: '/',
         component: Main,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/vocabulary',
+        component: Vocabulary,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/profile',
+        component: Profile,
         meta: { requiresAuth: true }
     }
 ];
