@@ -38,7 +38,7 @@
                     </div>
 
                     <div class="input_container">
-                        <input type="password" required="" autocomplete="on" v-model.trim="$v.form.password.$model"/>
+                        <input type="password" required="" autocomplete="on" v-model.trim="$v.form.password.$model" v-on:keyup.13="submit"/>
                         <label>Password</label>
                         <svg>
                             <use xlink:href="#password"></use>

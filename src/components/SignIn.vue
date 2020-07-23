@@ -8,7 +8,7 @@
                 <h1>Welcome</h1>
                 <div class="form_inputs">
                     <div class="input_container">
-                        <input type="text" required="" v-model.trim="$v.form.email.$model" @input="handleInput"/>
+                        <input type="email" required="" v-model.trim="$v.form.email.$model" @input="handleInput"/>
                         <label>Email</label>
                         <svg>
                             <use xlink:href="#email"></use>
@@ -21,7 +21,7 @@
 
                     <div class="input_container">
                         <input type="password" required="" autocomplete="on" v-model.trim="$v.form.password.$model"
-                        @input="handleInput"/>
+                        @input="handleInput" @keyup.13="login"/>
                         <label>Password</label>
                         <svg>
                             <use xlink:href="#password"></use>

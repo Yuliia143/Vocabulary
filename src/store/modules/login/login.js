@@ -7,7 +7,13 @@ Vue.use(Vuex, axios);
 
 const state = {
     tokens: JSON.parse(localStorage.getItem('tokens')) || '',
-    id: ''
+    id: '',
+    user: {
+        id: '',
+        name: 'Super Cat',
+        email: 'yuliia12@gmai.com',
+        password: 'yuliia12'
+    }
 };
 
 const getters = {
@@ -16,15 +22,21 @@ const getters = {
     },
     getId: state => {
         return state.id;
+    },
+    getUser: state => {
+        return state.user;
     }
 };
 
 const mutations = {
-    setTokens(state, tokens){
+    setTokens(state, tokens) {
         state.tokens = tokens;
     },
-    setId(state, id){
+    setId(state, id) {
         state.id = id;
+    },
+    setUser(state, user) {
+        state.user = user;
     }
 };
 
@@ -65,18 +77,25 @@ const actions = {
                 throw new Error(error.response.data);
             });
     },
-    getAuthUser({commit, getters}, id){
-        return axios.get(`http://localhost:8080/api/users/${id}` , {
+    getAuthUser({commit, getters}, id) {
+        return axios.get(`http://localhost:8080/api/users/${id}`, {
             headers: {
                 'Authorization': getters.getTokens.accessToken
             }
         })
-            .then(data=>{
+            .then(data => {
+                console.log(data);
+                commit('setUser', data.data);
+                console.log(state.user);
                 return data;
             })
             .catch(error => {
                 throw new Error(error);
             });
+    },
+    signOut({commit}) {
+        window.localStorage.removeItem("tokens");
+        commit('setTokens', null);
     }
 };
 
