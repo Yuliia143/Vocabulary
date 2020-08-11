@@ -1,7 +1,7 @@
 <template>
     <div class="modal__mask">
         <div class="modal__container">
-            <svg @click="$emit('close')">
+            <svg @click="onClose(word)">
                 <use xlink:href="#close"></use>
             </svg>
             <div class="modal__header">
@@ -17,9 +17,9 @@
                             <use xlink:href="#speaker"></use>
                         </svg>
                     </button>
-                    <p>{{word.title}}</p>
+                    <input class="word__title" v-model="word.title" value="word.title"/>
+                    <input class="word__translation" v-model="word.translation" value="word.translation"/>
                 </div>
-                <p>{{word.translation}}</p>
             </div>
             <div class="modal__footer">
                 <button>
@@ -30,7 +30,7 @@
                         <use xlink:href="#studying"></use>
                     </svg>
                 </button>
-                <button  @click="onRemove(word.id)">
+                <button @click="onRemove(word.id)">
                     <svg>
                         <use xlink:href="#delete"></use>
                     </svg>
@@ -54,6 +54,10 @@
                 this.$store.commit('removeWord', id);
                 this.$emit('close');
             },
+            onClose(word) {
+                this.$store.dispatch('updateWord', word);
+                this.$emit('close');
+            }
         }
     }
 </script>
@@ -109,6 +113,8 @@
 
     .modal__word {
         margin-top: 20px;
+        display: flex;
+        flex-direction: column;
     }
 
     .modal__word svg {
@@ -116,22 +122,39 @@
         height: 30px;
     }
 
-    .modal__word p {
+    .modal__word input{
+        text-align: center;
+        border: none;
+        border-bottom: 1px solid black;
+        align-self: center;
+        width: 50%;
+        margin-bottom: 15px;
+    }
+    .modal__word input:focus{
+        outline: none;
+    }
+    .word__title {
         font-size: 24px;
     }
+    .word__translation{
+        font-size: 16px;
+    }
 
-    .modal__body{
+
+    .modal__body {
         flex: 1;
     }
+
     .modal__body p {
         margin: 5px;
     }
-    
-    .modal__footer{
+
+    .modal__footer {
         display: flex;
         justify-content: space-between;
     }
-    .modal__footer svg{
+
+    .modal__footer svg {
         width: 30px;
         height: 30px;
     }

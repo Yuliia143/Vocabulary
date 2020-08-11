@@ -8,12 +8,7 @@ Vue.use(Vuex, axios);
 const state = {
     tokens: JSON.parse(localStorage.getItem('tokens')) || '',
     id: '',
-    user: {
-        id: '',
-        name: 'Super Cat',
-        email: 'yuliia12@gmai.com',
-        password: 'yuliia12'
-    }
+    user: JSON.parse(localStorage.getItem('user')) || ''
 };
 
 const getters = {
@@ -86,6 +81,7 @@ const actions = {
             .then(data => {
                 console.log(data);
                 commit('setUser', data.data);
+                localStorage.setItem('user', JSON.stringify(data.data));
                 console.log(state.user);
                 return data;
             })
@@ -95,6 +91,7 @@ const actions = {
     },
     signOut({commit}) {
         window.localStorage.removeItem("tokens");
+        window.localStorage.removeItem("user");
         commit('setTokens', null);
     }
 };

@@ -83,6 +83,9 @@ const getters = {
 };
 
 const mutations = {
+    setWords(state, word) {
+        state.words.push(word);
+    },
     updateQuery(state, payload) {
         state.query = payload;
     },
@@ -93,13 +96,66 @@ const mutations = {
     removeWord(state, payload) {
         let index = state.words.findIndex(word => word.id === payload);
         state.words.splice(index, 1);
-    },
-    addWord(state, payload) {
-        state.words.push(payload);
-    },
+    }
 };
 
-const actions = {};
+const actions = {
+        getAllWords({commit, getters}) {
+            return axios.get('http://localhost:8080/api/words', {
+                headers: {
+                    'Authorization': getters.getTokens.accessToken
+                }
+            }).then(data => {
+                data.data.forEach(word => {
+                    commit('setWords', word);
+                })
+                return data;
+            }).catch(error => {
+                throw new Error(error);
+            });
+        },
+        addWord({commit, getters}, word) {
+            return axios.post('http://localhost:8080/api/addWord', word, {
+                headers: {
+                    'Authorization': getters.getTokens.accessToken
+                }
+            }).then(data => {
+                commit('setWords', data.data.newWord);
+                return data;
+            }).catch(error => {
+                throw new Error(error);
+            });
+        },
+        removeWord({commit, getters}, id) {
+            return axios.delete(`http://localhost:8080/api/removeWord/${id}`, {
+                headers: {
+                    'Authorization': getters.getTokens.accessToken
+                }
+            }).then(data => {
+                commit('removeWord', id);
+                return data;
+            }).catch(error => {
+                throw new Error(error);
+            });
+        },
+        updateWord({commit, getters}, word) {
+            console.log(word);
+            return axios.put(`http://localhost:8080/api/updateWord/${word.id}`, {
+                    word
+                },
+                {
+                    headers: {
+                        'Authorization': getters.getTokens.accessToken
+                    }
+                }).then(data => {
+                console.log(data);
+                return data;
+            }).catch(error => {
+                throw new Error(error);
+            });
+        }
+    }
+;
 
 export default {
     state,

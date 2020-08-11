@@ -79,7 +79,7 @@
                 speechSynthesis.speak(new SpeechSynthesisUtterance(value));
             },
             onRemove(id) {
-                this.$store.commit('removeWord', id);
+                this.$store.dispatch('removeWord', id);
             },
             onShowDetailsModal(word) {
                 this.onListen(word.title);

@@ -13,27 +13,30 @@ const routes = [
     {
         path: '/sign-up',
         component: SignUp,
-        meta: { requiresAuth: false }
+        meta: {requiresAuth: false}
     },
     {
         path: '/sign-in',
         component: SignIn,
-        meta: { requiresAuth: false }
+        meta: {requiresAuth: false}
     },
     {
         path: '/',
         component: Main,
-        meta: { requiresAuth: true }
+        meta: {requiresAuth: true}
     },
     {
         path: '/vocabulary',
         component: Vocabulary,
-        meta: { requiresAuth: true }
+        beforeEnter: (to, from, next) => {
+            store.dispatch('getAllWords').then(() => next());
+        },
+        meta: {requiresAuth: true},
     },
     {
         path: '/profile',
         component: Profile,
-        meta: { requiresAuth: true }
+        meta: {requiresAuth: true}
     }
 ];
 

@@ -50,7 +50,7 @@
             },
             onAdd(e) {
                 e.preventDefault();
-                this.$store.commit('addWord', this.word.getDto());
+                this.$store.dispatch('addWord', this.word.getDto());
                 this.$emit('close');
             }
         }
